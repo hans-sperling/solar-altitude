@@ -1,0 +1,37 @@
+{
+    "name" :        "PerspectiveView-Solar-Altitude",
+    "title" :       "PerspectiveView-Solar-Altitude",
+    "description" : "Test concept of coloring shapes for PerspectiveView",
+    "version":      "0.1.0",
+    "author" : {
+        "name" : "Danny Grübl",
+        "url" :  "https://github.com/perspectiveview/solar-altitudes/blob/master/AUTHORS.txt"
+    },
+    "repository" : {
+        "type" : "git",
+        "url" :  "https://github.com/perspectiveview/solar-altitudes"
+    },
+    "keywords" : [
+        "solar altitudes",
+        "perpective view",
+        "javascript",
+        "canvas",
+        "browser",
+        "concept"
+    ],
+    "bugs" : {
+        "url" :   "https://github.com/perspectiveview/solar-altitudes/issues",
+        "email" : "perspectiveview@bluejade.de"
+    },
+    "licenses" : [{
+        "type" : "MIT",
+        "url" :  "https://github.com/perspectiveview/solar-altitudes/blob/master/LICENSE.txt"
+    }],
+    "dependencies" : {},
+    "devDependencies" : {
+        "gulp" :         "latest",
+        "gulp-sass" :    "latest",
+        "jsdoc" :        "latest",
+        "ink-docstrap" : "latest"
+    }
+}

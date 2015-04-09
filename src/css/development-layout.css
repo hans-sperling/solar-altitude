@@ -1,0 +1,72 @@
+body {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+/* ------------------------------------------------------------------------------------------------ Theme colors DARK */
+
+body.bright {
+    background: rgb(223, 223, 223);
+}
+
+body.bright .application {
+    border-color: rgb(32, 32, 32);
+}
+
+/* ---------------------------------------------------------------------------------------------- Theme colors BRIGHT */
+
+body.dark {
+    background: rgb(32, 32, 32);
+}
+
+body.dark .application {
+    border-color: rgb(223, 223, 223);
+}
+
+/* ------------------------------------------------------------------------------------------------------ Theme style */
+
+.wrapper {
+    width: 100%;
+    height: 100%;
+    padding-top: 15px;
+}
+
+.application {
+    position: relative;
+    width: 400px;
+    height: 400px;
+    margin: 0 auto;
+    border: 1px solid;
+    box-sizing: content-box;
+}
+
+.rect {
+    width: 100px;
+    height: 100px;
+    background: rgba(0,0,0,0.1);
+}
+
+#north {
+    position: absolute;
+    top: 0;
+    left: 150px;
+}
+
+#east {
+    position: absolute;
+    top: 150px;
+    right: 0px;
+}
+
+#south {
+    position: absolute;
+    bottom: 0;
+    left: 150px;
+}
+
+#west {
+    position: absolute;
+    top: 150px;
+    left: 0;
+}
