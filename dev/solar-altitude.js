@@ -11,7 +11,7 @@ function SolarAltitude(win, doc, $) {
         west:  $('#west')
     };
 
-    priv.time = 12; // 00:00 - 24:00
+    priv.time = 0; // 00:00 - 24:00
 
     priv.worldColor = {
         r: 255,
@@ -71,14 +71,17 @@ function SolarAltitude(win, doc, $) {
         /**/
     };
 
+    // Returns percentage brightness
     priv.getBrightness = function getBrightness(time) {
-        var brightness = 0;
+        var min        = 0,
+            max        = 100,
+            brightness = min;
 
         if (time >= 0 && time < 12) {
-            brightness = ((100 / 12) * time);
+            brightness = min + ((time * (max - min)) / 12);
         }
-        else {
-            brightness = 100 - ((100 / 12) * (time-12));
+        else if (time >= 12 && time <= 24 ) {
+            brightness = max - (((time - 12) * (max - min)) / 12);
         }
 
         return brightness;
@@ -96,7 +99,7 @@ function SolarAltitude(win, doc, $) {
             b          = Math.round(step.b * brightness);
 
         // Logging
-        /** /
+        /**/
         console.log(brightness);
         console.log(r);
         console.log(g);
