@@ -11,7 +11,7 @@ function SolarAltitude(win, doc, $) {
         west:  $('#west')
     };
 
-    priv.time = 0; // 00:00 - 24:00
+    priv.time = 12; // 00:00 - 24:00
 
     priv.worldColor = {
         r: 255,
@@ -31,13 +31,6 @@ function SolarAltitude(win, doc, $) {
         east:  { r: 127, g: 0,   b: 0   },
         south: { r: 127, g: 127, b: 0   },
         west:  { r: 127, g: 0,   b: 0   }
-    };
-
-    priv.currentColor = {
-        north: { r: 127, g: 127, b: 127 },
-        east:  { r: 127, g: 127, b: 127 },
-        south: { r: 127, g: 127, b: 127 },
-        west:  { r: 127, g: 127, b: 127 }
     };
 
 
@@ -73,7 +66,7 @@ function SolarAltitude(win, doc, $) {
 
     // Returns percentage brightness
     priv.getBrightness = function getBrightness(time) {
-        var min        = 0,
+        var min        = 25,
             max        = 100,
             brightness = min;
 
@@ -88,26 +81,49 @@ function SolarAltitude(win, doc, $) {
     };
 
     pub.updateColors = function updateColors() {
-        var step = {
-                r: (priv.worldColor.r / 100),
-                g: (priv.worldColor.g / 100),
-                b: (priv.worldColor.b / 100)
-            },
-            brightness = priv.getBrightness(priv.time),
-            r          = Math.round(step.r * brightness),
-            g          = Math.round(step.g * brightness),
-            b          = Math.round(step.b * brightness);
+        var brightness = priv.getBrightness(priv.time),
+            r          = 0,
+            g          = 0,
+            b          = 0;
+
+        // Render world color
+        r = Math.round((priv.worldColor.r / 100) * brightness);
+        g = Math.round((priv.worldColor.g / 100) * brightness);
+        b = Math.round((priv.worldColor.b / 100) * brightness);
+        priv.shapes.world.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
+
+
+        // Render north color
+        r = Math.round((priv.cubeColor.north.r / 100) * brightness);
+        g = Math.round((priv.cubeColor.north.g / 100) * brightness);
+        b = Math.round((priv.cubeColor.north.b / 100) * brightness);
+        priv.shapes.north.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
+
+        // Render north color
+        r = Math.round((priv.cubeColor.east.r / 100) * brightness);
+        g = Math.round((priv.cubeColor.east.g / 100) * brightness);
+        b = Math.round((priv.cubeColor.east.b / 100) * brightness);
+        priv.shapes.east.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
+
+        // Render north color
+        r = Math.round((priv.cubeColor.south.r / 100) * brightness);
+        g = Math.round((priv.cubeColor.south.g / 100) * brightness);
+        b = Math.round((priv.cubeColor.south.b / 100) * brightness);
+        priv.shapes.south.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
+
+        // Render north color
+        r = Math.round((priv.cubeColor.west.r / 100) * brightness);
+        g = Math.round((priv.cubeColor.west.g / 100) * brightness);
+        b = Math.round((priv.cubeColor.west.b / 100) * brightness);
+        priv.shapes.west.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
 
         // Logging
-        /**/
+        /** /
         console.log(brightness);
         console.log(r);
         console.log(g);
         console.log(b);
         /**/
-
-        // Render
-        priv.shapes.world.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
     };
 
     // ------------------------------------------------------------------------------------------------ Return
