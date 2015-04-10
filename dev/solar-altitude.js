@@ -26,11 +26,13 @@ function SolarAltitude(win, doc, $) {
         west:  { r: 127, g: 127, b: 127 }
     };
 
-    priv.sunColor = {
-        north: { r: 0,   g: 0,   b: 127 },
-        east:  { r: 127, g: 0,   b: 0   },
-        south: { r: 127, g: 127, b: 0   },
-        west:  { r: 127, g: 0,   b: 0   }
+    priv.solarColor = {
+        sunrise:  { r: 100, g: 0,   b: 0   },
+        midday:   { r: 100, g: 100, b: 0   },
+        sunset:   { r: 100, g: 0,   b: 0   },
+        moonrise: { r: 0,   g: 0,   b: 50  },
+        midnight: { r: 0,   g: 0,   b: 100 },
+        moonset:  { r: 0,   g: 0,   b: 50  }
     };
 
 
@@ -82,9 +84,7 @@ function SolarAltitude(win, doc, $) {
 
     pub.updateColors = function updateColors() {
         var brightness = priv.getBrightness(priv.time),
-            r          = 0,
-            g          = 0,
-            b          = 0;
+            r, g, b;
 
         // Render world color
         r = Math.round((priv.worldColor.r / 100) * brightness);
