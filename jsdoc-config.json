@@ -1,0 +1,32 @@
+{
+    "tags" : {
+        "allowUnknownTags" : "true"
+    },
+    "source" : {
+        "excludePattern" : "docs",
+        "include" :        ["./dev/"],
+        "includePattern" : ".+\\.js(doc)?$"
+    },
+    "plugins" : [],
+    "templates" : {
+        "cleverLinks" :       "false",
+        "collapseSymbols" :   "true",
+        "copyright" :         "2015",
+        "footer" :            "Documentation for PerspectiveView-Solar-Altitude by Danny Grübl",
+        "inverseNav" :        "true",
+        "linenums" :          "true",
+        "monospaceLinks" :    "true",
+        "navType" :           "vertical",
+        "outputSourceFiles" : "true" ,
+        "outputSourcePath" :  "true",
+        "systemName" :        "PerspectiveView-Solar-Altitude",
+        "theme" :             "cerulean"
+    },
+    "opts" : {
+        "destination" : "./docs/v0.1.0/",
+        "encoding" :    "utf8",
+        "private" :     "true",
+        "recurse" :     "true",
+        "template" :    "../ink-docstrap/template"
+    }
+}

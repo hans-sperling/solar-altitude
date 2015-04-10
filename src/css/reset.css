@@ -1,0 +1,47 @@
+/* ----------------------------------------------------------------------------------------------------------- Global */
+* {
+    margin: 0;
+    padding: 0;
+    font-family: inherit;
+    font-weight: inherit;
+    font-style: inherit;
+    box-sizing: border-box;
+}
+html {
+    overflow-y: scroll;
+    width: 100%;
+}
+body {
+    text-rendering: optimizeLegibility;
+    width: 100%;
+}
+/* ---------------------------------------------------------------------------------------------------------- Content */
+article, aside, details,
+figcaption, figure, footer,
+header, hgroup, main, nav,
+section, summary {
+    display: block;
+}
+/**
+* Correct `inline-block` display not defined in IE 6/7/8/9 and Firefox 3.
+*/
+audio, canvas, video {
+    display: inline-block;
+    *display: inline;
+    *zoom: 1;
+}
+/*
+* Remove the gap between images and the bottom of their containers.
+* - h5bp.com/i/440
+*/
+img {
+    border: 0;
+    vertical-align: middle;
+    -ms-interpolation-mode: bicubic; /* IE 7 */
+}
+a {
+    text-decoration: none;
+}
+:focus {
+    outline: none;
+}
