@@ -11,7 +11,11 @@ function SolarAltitude(win, doc, $) {
         west:  $('#west')
     };
 
-    priv.time = 12; // 00:00 - 24:00
+    priv.brightness = {
+        min: 25,
+        max: 100
+    };
+    priv.time = 6; // 00:00 - 24:00
 
     priv.worldColor = {
         r: 255,
@@ -27,19 +31,17 @@ function SolarAltitude(win, doc, $) {
     };
 
     priv.solarColor = {
-        sunrise:  { r: 255, g: 0,   b: 0   },
-        midday:   { r: 255, g: 255, b: 0   },
-        sunset:   { r: 255, g: 0,   b: 0   },
-        moonrise: { r: 0,   g: 0,   b: 50  },
-        midnight: { r: 0,   g: 0,   b: 100 },
-        moonset:  { r: 0,   g: 0,   b: 50  }
+        sunrise:  { r: 255, g: 0, b: 0 },
+        midday:   { r: 255, g: 255, b: 200 },
+        sunset:   { r: 255, g: 255, b: 255 },
+        midnight: { r: 255, g: 255, b: 255 }
     };
 
 
     // Returns percentage brightness
     priv.getBrightness = function getBrightness(time) {
-        var min        = 25,
-            max        = 100,
+        var min        = priv.brightness.min,
+            max        = priv.brightness.max,
             brightness = min;
 
         if (time >= 0 && time < 12) {
@@ -53,7 +55,42 @@ function SolarAltitude(win, doc, $) {
     };
 
     priv.getSolarColor = function getSolarColor(time) {
-        var solarColor = { r: 255, g: 255, b: 255 };
+        var solarColor = { r:0, g:0, b:0 },
+            factor     = 6, // hours per day-zone
+            startColor, endColor;
+
+        if (time >= 0 && time < 6) {
+            startColor = priv.solarColor.midnight;
+            endColor   = priv.solarColor.sunrise;
+
+            solarColor.r = startColor.r + (((time) * (endColor.r - startColor.r)) / factor);
+            solarColor.g = startColor.g + (((time) * (endColor.g - startColor.g)) / factor);
+            solarColor.b = startColor.b + (((time) * (endColor.b - startColor.b)) / factor);
+        }
+        else if (time >= 6 && time < 12) {
+            startColor = priv.solarColor.sunrise;
+            endColor   = priv.solarColor.midday;
+
+            solarColor.r = startColor.r + (((time - 6) * (endColor.r - startColor.r)) / factor);
+            solarColor.g = startColor.g + (((time - 6) * (endColor.g - startColor.g)) / factor);
+            solarColor.b = startColor.b + (((time - 6) * (endColor.b - startColor.b)) / factor);
+        }
+        else if (time >= 12 && time <= 18 ) {
+            startColor = priv.solarColor.midday;
+            endColor   = priv.solarColor.sunset;
+
+            solarColor.r = startColor.r + (((time - 12) * (endColor.r - startColor.r)) / factor);
+            solarColor.g = startColor.g + (((time - 12) * (endColor.g - startColor.g)) / factor);
+            solarColor.b = startColor.b + (((time - 12) * (endColor.b - startColor.b)) / factor);
+        }
+        else if (time >= 18 && time < 24 ) {
+            startColor = priv.solarColor.sunset;
+            endColor   = priv.solarColor.midnight;
+
+            solarColor.r = startColor.r + (((time - 18) * (endColor.r - startColor.r)) / factor);
+            solarColor.g = startColor.g + (((time - 18) * (endColor.g - startColor.g)) / factor);
+            solarColor.b = startColor.b + (((time - 18) * (endColor.b - startColor.b)) / factor);
+        }
 
 
 
@@ -74,14 +111,22 @@ function SolarAltitude(win, doc, $) {
                 priv.time = 0;
             }
             pub.updateColors();
+            console.log('Time: ', priv.time);
         }, 100);
         /**/
     };
 
     pub.updateColors = function updateColors() {
-        var brightness = priv.getBrightness(priv.time),
-            solarColor = priv.getSolarColor(priv.time),
+        var brightness = 100,
+            solarColor = { r: 255, g: 255, b: 255 },
             r, g, b;
+
+
+        // Dynamic light and brightness
+        /** /
+        brightness = priv.getBrightness(priv.time);
+        solarColor = priv.getSolarColor(priv.time);
+        /**/
 
         // Render world color
         r = Math.round((priv.worldColor.r + solarColor.r) / 200 * brightness);
