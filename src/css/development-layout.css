@@ -44,7 +44,8 @@ body.dark .application {
 .rect {
     width: 100px;
     height: 100px;
-    background: rgba(0,0,0,0.1);
+    background: #000; /* Fallback color */
+
 }
 
 #north {
@@ -69,4 +70,10 @@ body.dark .application {
     position: absolute;
     top: 150px;
     left: 0;
+}
+
+#roof {
+    position: absolute;
+    top: 150px;
+    left: 150px;
 }
