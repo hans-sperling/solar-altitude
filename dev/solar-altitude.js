@@ -33,7 +33,7 @@ function SolarAltitude(win, doc, $) {
     };
 
     priv.solarColor = {
-        sunrise:  { r: 255, g: 0,   b: 0 },
+        sunrise:  { r: 255, g: 0,   b: 0   },
         midday:   { r: 255, g: 255, b: 200 },
         sunset:   { r: 255, g: 255, b: 255 },
         midnight: { r: 255, g: 255, b: 255 }
