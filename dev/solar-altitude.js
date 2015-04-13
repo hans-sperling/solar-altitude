@@ -16,7 +16,8 @@ function SolarAltitude(win, doc, $) {
         min: 25,
         max: 100
     };
-    priv.time = 6; // 00:00 - 24:00
+
+    priv.time = 0; // 00:00 - 24:00
 
     priv.worldColor = {
         r: 255,
@@ -34,9 +35,9 @@ function SolarAltitude(win, doc, $) {
 
     priv.solarColor = {
         sunrise:  { r: 255, g: 0,   b: 0   },
-        midday:   { r: 255, g: 255, b: 200 },
-        sunset:   { r: 255, g: 255, b: 255 },
-        midnight: { r: 255, g: 255, b: 255 }
+        midday:   { r: 255, g: 255, b: 0   },
+        sunset:   { r: 255, g: 0,   b: 0   },
+        midnight: { r: 0,   g: 0,   b: 255 }
     };
 
 
@@ -94,10 +95,87 @@ function SolarAltitude(win, doc, $) {
             solarColor.b = startColor.b + (((time - 18) * (endColor.b - startColor.b)) / factor);
         }
 
-
-
-
         return solarColor;
+    };
+
+
+    priv.getSolarIntensity = function getSolarIntensity(time) {
+        var intensity = {
+                north: 0,
+                east:  0,
+                south: 0,
+                west:  0,
+                roof:  0
+            },
+            factor = 6,
+            startNorth, endNorth,
+            startEast,  endEast,
+            startSouth, endSouth,
+            startWest,  endWest,
+            roof;
+
+        if (time >= 0 && time < 6) {
+            startNorth = 1.0;
+            endNorth   = 0.5;
+            startEast  = 0.5;
+            endEast    = 1.0;
+            startSouth = 0.0;
+            endSouth   = 0.5;
+            startWest  = 0.5;
+            endWest    = 0.0;
+
+            intensity.north = startNorth + ((time * (endNorth - startNorth)) / factor);
+            intensity.east  = startEast  + ((time * (endEast  - startEast))  / factor);
+            intensity.south = startSouth + ((time * (endSouth - startSouth)) / factor);
+            intensity.west  = startWest  + ((time * (endWest  - startWest))  / factor);
+        }
+        else if (time >= 6 && time < 12) {
+            startNorth = 0.5;
+            endNorth   = 0.0;
+            startEast  = 1.0;
+            endEast    = 0.5;
+            startSouth = 0.5;
+            endSouth   = 1.0;
+            startWest  = 0.0;
+            endWest    = 0.5;
+
+            intensity.north = startNorth + (((time - 6) * (endNorth - startNorth)) / factor);
+            intensity.east  = startEast  + (((time - 6) * (endEast  - startEast))  / factor);
+            intensity.south = startSouth + (((time - 6) * (endSouth - startSouth)) / factor);
+            intensity.west  = startWest  + (((time - 6) * (endWest  - startWest))  / factor);
+        }
+        else if (time >= 12 && time <= 18 ) {
+            startNorth = 0.0;
+            endNorth   = 0.5;
+            startEast  = 0.5;
+            endEast    = 0.0;
+            startSouth = 1.0;
+            endSouth   = 0.5;
+            startWest  = 0.5;
+            endWest    = 1.0;
+
+            intensity.north = startNorth + (((time - 12) * (endNorth - startNorth)) / factor);
+            intensity.east  = startEast  + (((time - 12) * (endEast  - startEast))  / factor);
+            intensity.south = startSouth + (((time - 12) * (endSouth - startSouth)) / factor);
+            intensity.west  = startWest  + (((time - 12) * (endWest  - startWest))  / factor);
+        }
+        else if (time >= 18 && time < 24 ) {
+            startNorth = 0.5;
+            endNorth   = 1.0;
+            startEast  = 0.0;
+            endEast    = 0.5;
+            startSouth = 0.5;
+            endSouth   = 0.0;
+            startWest  = 1.0;
+            endWest    = 0.5;
+
+            intensity.north = startNorth + (((time - 18) * (endNorth - startNorth)) / factor);
+            intensity.east  = startEast  + (((time - 18) * (endEast  - startEast))  / factor);
+            intensity.south = startSouth + (((time - 18) * (endSouth - startSouth)) / factor);
+            intensity.west  = startWest  + (((time - 18) * (endWest  - startWest))  / factor);
+        }
+
+        return intensity;
     };
 
     // ------------------------------------------------------------------------------------------------ Public
@@ -106,9 +184,9 @@ function SolarAltitude(win, doc, $) {
         pub.updateColors();
 
         // Simulate a day
-        /** /
+        /**/
         setInterval(function() {
-            priv.time += 1;
+            priv.time = Math.round((priv.time + 0.1) * 100) / 100;
             if (priv.time >= 24) {
                 priv.time = 0;
             }
@@ -119,15 +197,17 @@ function SolarAltitude(win, doc, $) {
     };
 
     pub.updateColors = function updateColors() {
-        var brightness = 100,
-            solarColor = { r: 255, g: 255, b: 255 },
+        var brightness     = 100,
+            solarColor     = { r: 255, g: 255, b: 255 },
+            solarIntensity = { north: 0, east: 0, south: 0, west: 0, roof: 0},
             r, g, b;
 
 
         // Dynamic light and brightness
-        /** /
-        brightness = priv.getBrightness(priv.time);
-        solarColor = priv.getSolarColor(priv.time);
+        /**/
+        brightness     = priv.getBrightness(priv.time);
+        solarColor     = priv.getSolarColor(priv.time);
+        solarIntensity = priv.getSolarIntensity(priv.time);
         /**/
 
         // Render world color
@@ -137,33 +217,33 @@ function SolarAltitude(win, doc, $) {
         priv.shapes.world.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
 
         // Render north color
-        r = Math.round((priv.cubeColor.north.r + solarColor.r) / 200 * brightness);
-        g = Math.round((priv.cubeColor.north.g + solarColor.g) / 200 * brightness);
-        b = Math.round((priv.cubeColor.north.b + solarColor.b) / 200 * brightness);
+        r = Math.round((priv.cubeColor.north.r + (solarColor.r * solarIntensity.north)) / 200 * brightness);
+        g = Math.round((priv.cubeColor.north.g + (solarColor.g * solarIntensity.north)) / 200 * brightness);
+        b = Math.round((priv.cubeColor.north.b + (solarColor.b * solarIntensity.north)) / 200 * brightness);
         priv.shapes.north.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
 
-        // Render north color
-        r = Math.round((priv.cubeColor.east.r + solarColor.r) / 200 * brightness);
-        g = Math.round((priv.cubeColor.east.g + solarColor.g) / 200 * brightness);
-        b = Math.round((priv.cubeColor.east.b + solarColor.b) / 200 * brightness);
+        // Render east color
+        r = Math.round((priv.cubeColor.east.r + (solarColor.r * solarIntensity.east)) / 200 * brightness);
+        g = Math.round((priv.cubeColor.east.g + (solarColor.g * solarIntensity.east)) / 200 * brightness);
+        b = Math.round((priv.cubeColor.east.b + (solarColor.b * solarIntensity.east)) / 200 * brightness);
         priv.shapes.east.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
 
-        // Render north color
-        r = Math.round((priv.cubeColor.south.r + solarColor.r) / 200 * brightness);
-        g = Math.round((priv.cubeColor.south.g + solarColor.g) / 200 * brightness);
-        b = Math.round((priv.cubeColor.south.b + solarColor.b) / 200 * brightness);
+        // Render south color
+        r = Math.round((priv.cubeColor.south.r + (solarColor.r * solarIntensity.south)) / 200 * brightness);
+        g = Math.round((priv.cubeColor.south.g + (solarColor.g * solarIntensity.south)) / 200 * brightness);
+        b = Math.round((priv.cubeColor.south.b + (solarColor.b * solarIntensity.south)) / 200 * brightness);
         priv.shapes.south.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
 
-        // Render north color
-        r = Math.round((priv.cubeColor.west.r + solarColor.r) / 200 * brightness);
-        g = Math.round((priv.cubeColor.west.g + solarColor.g) / 200 * brightness);
-        b = Math.round((priv.cubeColor.west.b + solarColor.b) / 200 * brightness);
+        // Render west color
+        r = Math.round((priv.cubeColor.west.r + (solarColor.r * solarIntensity.west)) / 200 * brightness);
+        g = Math.round((priv.cubeColor.west.g + (solarColor.g * solarIntensity.west)) / 200 * brightness);
+        b = Math.round((priv.cubeColor.west.b + (solarColor.b * solarIntensity.west)) / 200 * brightness);
         priv.shapes.west.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
 
-        // Render north color
-        r = Math.round((priv.cubeColor.roof.r + solarColor.r) / 200 * brightness);
-        g = Math.round((priv.cubeColor.roof.g + solarColor.g) / 200 * brightness);
-        b = Math.round((priv.cubeColor.roof.b + solarColor.b) / 200 * brightness);
+        // Render roof color
+        r = Math.round((priv.cubeColor.roof.r + solarColor.r * solarIntensity.roof) / 200 * brightness);
+        g = Math.round((priv.cubeColor.roof.g + solarColor.g * solarIntensity.roof) / 200 * brightness);
+        b = Math.round((priv.cubeColor.roof.b + solarColor.b * solarIntensity.roof) / 200 * brightness);
         priv.shapes.roof.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
 
         // Logging
