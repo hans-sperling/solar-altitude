@@ -8,7 +8,8 @@ function SolarAltitude(win, doc, $) {
         north: $('#north'),
         east:  $('#east'),
         south: $('#south'),
-        west:  $('#west')
+        west:  $('#west'),
+        roof:  $('#roof')
     };
 
     priv.brightness = {
@@ -27,11 +28,12 @@ function SolarAltitude(win, doc, $) {
         north: { r: 127, g: 127, b: 127 },
         east:  { r: 127, g: 127, b: 127 },
         south: { r: 127, g: 127, b: 127 },
-        west:  { r: 127, g: 127, b: 127 }
+        west:  { r: 127, g: 127, b: 127 },
+        roof:  { r: 127, g: 127, b: 127 }
     };
 
     priv.solarColor = {
-        sunrise:  { r: 255, g: 0, b: 0 },
+        sunrise:  { r: 255, g: 0,   b: 0 },
         midday:   { r: 255, g: 255, b: 200 },
         sunset:   { r: 255, g: 255, b: 255 },
         midnight: { r: 255, g: 255, b: 255 }
@@ -157,6 +159,12 @@ function SolarAltitude(win, doc, $) {
         g = Math.round((priv.cubeColor.west.g + solarColor.g) / 200 * brightness);
         b = Math.round((priv.cubeColor.west.b + solarColor.b) / 200 * brightness);
         priv.shapes.west.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
+
+        // Render north color
+        r = Math.round((priv.cubeColor.roof.r + solarColor.r) / 200 * brightness);
+        g = Math.round((priv.cubeColor.roof.g + solarColor.g) / 200 * brightness);
+        b = Math.round((priv.cubeColor.roof.b + solarColor.b) / 200 * brightness);
+        priv.shapes.roof.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
 
         // Logging
         /** /
