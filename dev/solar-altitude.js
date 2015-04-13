@@ -1,15 +1,15 @@
-function SolarAltitude(win, doc, $) {
+function SolarAltitude(win, doc, $, domId, cubeColor) {
     var priv = {}, pub = {};
 
     // ----------------------------------------------------------------------------------------------- Private
 
     priv.shapes = {
-        world: $('.application'),
-        north: $('#north'),
-        east:  $('#east'),
-        south: $('#south'),
-        west:  $('#west'),
-        roof:  $('#roof')
+        world: $(domId),
+        north: $(domId + ' .north'),
+        east:  $(domId + ' .east'),
+        south: $(domId + ' .south'),
+        west:  $(domId + ' .west'),
+        roof:  $(domId + ' .roof')
     };
 
     priv.brightness = {
@@ -25,20 +25,23 @@ function SolarAltitude(win, doc, $) {
         b: 255
     };
 
-    priv.cubeColor = {
-        north: { r: 127, g: 127, b: 127 },
-        east:  { r: 127, g: 127, b: 127 },
-        south: { r: 127, g: 127, b: 127 },
-        west:  { r: 127, g: 127, b: 127 },
-        roof:  { r: 127, g: 127, b: 127 }
-    };
+    /**/
+    priv.cubeColor = cubeColor;
 
+    /**/
     priv.solarColor = {
         sunrise:  { r: 255, g: 0,   b: 0   },
         midday:   { r: 255, g: 255, b: 0   },
         sunset:   { r: 255, g: 0,   b: 0   },
         midnight: { r: 0,   g: 0,   b: 255 }
-    };
+    };/**/
+    /** /
+    priv.solarColor = {
+        sunrise:  { r: 255, g: 255, b: 255 },
+        midday:   { r: 255, g: 255, b: 255 },
+        sunset:   { r: 255, g: 255, b: 255 },
+        midnight: { r: 255, g: 255, b: 255 }
+    };/**/
 
 
     // Returns percentage brightness
@@ -205,8 +208,8 @@ function SolarAltitude(win, doc, $) {
 
         // Dynamic light and brightness
         /**/
-        brightness     = priv.getBrightness(priv.time);
-        solarColor     = priv.getSolarColor(priv.time);
+        //brightness     = priv.getBrightness(priv.time);
+        //solarColor     = priv.getSolarColor(priv.time);
         solarIntensity = priv.getSolarIntensity(priv.time);
         /**/
 
@@ -267,7 +270,41 @@ function SolarAltitude(win, doc, $) {
 jQuery(document).ready(function() {
     'use strict';
 
-    var solarAltitude = new SolarAltitude(window, document, jQuery);
+    var red = {
+            north: { r: 255, g: 0, b: 0 },
+            east:  { r: 255, g: 0, b: 0 },
+            south: { r: 255, g: 0, b: 0 },
+            west:  { r: 255, g: 0, b: 0 },
+            roof:  { r: 255, g: 0, b: 0 }
+        },
+        green = {
+            north: { r: 0, g: 255, b: 0 },
+            east:  { r: 0, g: 255, b: 0 },
+            south: { r: 0, g: 255, b: 0 },
+            west:  { r: 0, g: 255, b: 0 },
+            roof:  { r: 0, g: 255, b: 0 }
+        },
+        blue = {
+            north: { r: 0, g: 0, b: 255 },
+            east:  { r: 0, g: 0, b: 255 },
+            south: { r: 0, g: 0, b: 255 },
+            west:  { r: 0, g: 0, b: 255 },
+            roof:  { r: 0, g: 0, b: 255 }
+        },
+        grey ={
+            north: { r: 127, g: 127, b: 127 },
+            east:  { r: 127, g: 127, b: 127 },
+            south: { r: 127, g: 127, b: 127 },
+            west:  { r: 127, g: 127, b: 127 },
+            roof:  { r: 127, g: 127, b: 127 }
+        },
+        solarAltitudeRed   = new SolarAltitude(window, document, jQuery, '#appRed', red),
+        solarAltitudeGreen = new SolarAltitude(window, document, jQuery, '#appGreen', green),
+        solarAltitudeBlue  = new SolarAltitude(window, document, jQuery, '#appBlue', blue),
+        solarAltitudeGrey  = new SolarAltitude(window, document, jQuery, '#appGrey', grey);
 
-    solarAltitude.init();
+    solarAltitudeRed.init();
+    solarAltitudeGreen.init();
+    solarAltitudeBlue.init();
+    solarAltitudeGrey.init();
 });

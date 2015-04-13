@@ -34,11 +34,12 @@ body.dark .application {
 
 .application {
     position: relative;
-    width: 400px;
-    height: 400px;
+    width: 300px;
+    height: 300px;
     margin: 0 auto;
     border: 1px solid;
     box-sizing: content-box;
+    float: left;
 }
 
 .rect {
@@ -48,32 +49,32 @@ body.dark .application {
 
 }
 
-#north {
+.north {
     position: absolute;
     top: 0;
-    left: 150px;
+    left: 100px;
 }
 
-#east {
+.east {
     position: absolute;
-    top: 150px;
-    right: 0px;
+    top: 100px;
+    left: 200px;
 }
 
-#south {
+.south {
     position: absolute;
-    bottom: 0;
-    left: 150px;
+    top: 200px;
+    left: 100px;
 }
 
-#west {
+.west {
     position: absolute;
-    top: 150px;
+    top: 100px;
     left: 0;
 }
 
-#roof {
+.roof {
     position: absolute;
-    top: 150px;
-    left: 150px;
+    top: 100px;
+    left: 100px;
 }
