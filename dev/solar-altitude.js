@@ -43,21 +43,22 @@ function SolarAltitude(win, doc, $, domId, cubeColor) {
         midnight: { r: 255, g: 255, b: 255 }
     };/**/
 
+    /** /
+    priv.solarColor = {
+        sunrise:  { r: 255, g: 255, b: 0 },
+        midday:   { r: 255, g: 255, b: 0 },
+        sunset:   { r: 255, g: 255, b: 0 },
+        midnight: { r: 255, g: 255, b: 0 }
+    };/**/
+
 
     // Returns percentage brightness
     priv.getBrightness = function getBrightness(time) {
         var min        = priv.brightness.min,
-            max        = priv.brightness.max,
-            brightness = min;
+            max        = priv.brightness.max;
 
-        if (time >= 0 && time < 12) {
-            brightness = min + ((time * (max - min)) / 12);
-        }
-        else if (time >= 12 && time <= 24 ) {
-            brightness = max - (((time - 12) * (max - min)) / 12);
-        }
-
-        return brightness;
+        // ((((min - max) * Math.cos(((Math.PI * time) * 2 / 24))) + max + min) / 2);
+        return ((((min - max) * Math.cos(((Math.PI * time) / 12))) + max + min) / 2);
     };
 
     priv.getSolarColor = function getSolarColor(time) {
@@ -97,6 +98,7 @@ function SolarAltitude(win, doc, $, domId, cubeColor) {
             solarColor.g = startColor.g + (((time - 18) * (endColor.g - startColor.g)) / factor);
             solarColor.b = startColor.b + (((time - 18) * (endColor.b - startColor.b)) / factor);
         }
+
 
         return solarColor;
     };
@@ -194,7 +196,7 @@ function SolarAltitude(win, doc, $, domId, cubeColor) {
                 priv.time = 0;
             }
             pub.updateColors();
-            console.log('Time: ', priv.time);
+            //console.log('Time: ', priv.time);
         }, 100);
         /**/
     };
@@ -208,10 +210,12 @@ function SolarAltitude(win, doc, $, domId, cubeColor) {
 
         // Dynamic light and brightness
         /**/
-        //brightness     = priv.getBrightness(priv.time);
-        //solarColor     = priv.getSolarColor(priv.time);
+        brightness     = priv.getBrightness(priv.time);
+        solarColor     = priv.getSolarColor(priv.time);
         solarIntensity = priv.getSolarIntensity(priv.time);
         /**/
+
+        console.log(priv.time, '  ' , Math.round((brightness * 100) / 100));
 
         // Render world color
         r = Math.round((priv.worldColor.r + solarColor.r) / 200 * brightness);
