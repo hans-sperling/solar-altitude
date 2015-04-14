@@ -135,8 +135,8 @@ function SolarAltitude(win, doc, $, domId, cubeColor) {
             day             = priv.day,
             scale           = day / intensityAmount,
             intensityIndex  = Math.floor(time / scale),
-            result          = [0.2, 0.4, 0.6, 0.8, 1.0],
-            intensity1, intensity2, i;
+            result          = [],
+            intensity1, intensity2, i, shapeAmount;
 
         if (intensityIndex < intensityAmount) {
             intensity1 = intensityList[intensityIndex];
@@ -153,7 +153,8 @@ function SolarAltitude(win, doc, $, domId, cubeColor) {
         }
 
 
-        for (i = 0; i < intensityAmount; i++) {
+        shapeAmount = Math.min(intensity1.length, intensity2.length);
+        for (i = 0; i < shapeAmount; i++) {
             if (intensity1[i] >= intensity2[i]) {
                 result[i] = intensity1[i] - ((time % scale) * (intensity1[i] - intensity2[i]) / scale);
             }
