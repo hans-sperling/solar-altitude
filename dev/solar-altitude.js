@@ -21,7 +21,7 @@ function SolarAltitude(win, doc, $, domId, cubeColor) {
 
     priv.day = 24; // hours per day
 
-    priv.time = 0; // 00:00 - 24:00
+    priv.time = 8; // 00:00 - 24:00
 
     priv.worldColor = {
         r: 255,
@@ -29,19 +29,30 @@ function SolarAltitude(win, doc, $, domId, cubeColor) {
         b: 255
     };
 
-    priv.solarColors = [
-        { r: 0,   g: 0,   b: 255 }, // 00:00
-        { r: 255, g: 0,   b: 0   }, // 06:00
-        { r: 255, g: 255, b: 0   }, // 12:00
-        { r: 255, g: 0,   b: 0   }  // 18:00
-    ];
+    priv.solarColors = {
+        list: [
+            { r: 0,   g: 0,   b: 255 }, // 00:00 - Midnight color
+            { r: 255, g: 0,   b: 0   }, // 06:00 - Sunrise color
+            { r: 255, g: 255, b: 0   }, // 12:00 - Midday color
+            { r: 255, g: 0,   b: 0   }  // 18:00 - Sunset color
+        ],
+        amount: 4
+    };
 
-    priv.solarIntensity = [
-        [0.8, 0.5, 0.2, 0.5, 1.0], // 00:00
-        [0.5, 0.8, 0.5, 0.2, 1.0], // 06:00
-        [0.2, 0.5, 0.8, 0.5, 1.0], // 12:00
-        [0.5, 0.2, 0.5, 0.8, 1.0]  // 18:00
-    ];
+    priv.solarIntensity = {
+        list: [
+            // [ north, east, south, west, roof]
+            [0.8, 0.5, 0.2, 0.5, 1.0], // 00:00 - Solar light shines from the north
+            [0.5, 0.8, 0.5, 0.2, 1.0], // 06:00 - Solar light shines from the east
+            [0.2, 0.5, 0.8, 0.5, 1.0], // 12:00 - Solar light shines from the south
+            [0.5, 0.2, 0.5, 0.8, 1.0]  // 18:00 - Solar light shines from the west
+        ],
+        amount: 4
+    };
+
+
+
+    // -----------------------------------------------------------------------------------------------------------------
 
 
 
@@ -62,14 +73,16 @@ function SolarAltitude(win, doc, $, domId, cubeColor) {
      * Returns solar color at the given time
      */
     priv.getSolarColor = function getSolarColor(time) {
-        var colorlist   = priv.solarColors,
+        var colorlist   = priv.solarColors.list,
+            colorAmount = priv.solarColors.amount,
             day         = priv.day,
-            colorAmount = colorlist.length,
             scale       = day / colorAmount,
             colorIndex  = Math.floor(time / scale),
             result      = {r: 0, g: 0, b: 0},
             color1, color2;
 
+        // Gets start and end color of the current day section
+        // todo: Check for real amount of colors. If there is only one color the following does not make sense.
         if (colorIndex < colorAmount) {
             color1 = colorlist[colorIndex];
         }
@@ -84,6 +97,8 @@ function SolarAltitude(win, doc, $, domId, cubeColor) {
             color2 = colorlist[0];
         }
 
+
+        // Checks the start and end color and computes a color between thees dependent on the current time
         if (color1.r >= color2.r) {
             result.r = color1.r - ((time % scale) * (color1.r - color2.r) / scale);
         }
@@ -110,106 +125,57 @@ function SolarAltitude(win, doc, $, domId, cubeColor) {
 
 
 
-    // todo: refactor
+    // -----------------------------------------------------------------------------------------------------------------
+
+
+
     priv.getSolarIntensity = function getSolarIntensity(time) {
-        var intensity = {
-                north: 0,
-                east:  0,
-                south: 0,
-                west:  0,
-                roof:  0
-            },
-            factor = 6,
-            startNorth, endNorth,
-            startEast,  endEast,
-            startSouth, endSouth,
-            startWest,  endWest,
-            startRoof,  endRoof,
-            roof;
+        var intensityList   = priv.solarIntensity.list,
+            intensityAmount = priv.solarIntensity.amount,
+            day             = priv.day,
+            scale           = day / intensityAmount,
+            intensityIndex  = Math.floor(time / scale),
+            result          = [0.2, 0.4, 0.6, 0.8, 1.0],
+            intensity1, intensity2, i;
 
-        if (time >= 0 && time < 6) {
-            startNorth = 1.0;
-            endNorth   = 0.5;
-            startEast  = 0.5;
-            endEast    = 1.0;
-            startSouth = 0.0;
-            endSouth   = 0.5;
-            startWest  = 0.5;
-            endWest    = 0.0;
-            startRoof  = 0.8;
-            endRoof    = 0.5;
-
-            intensity.north = startNorth + ((time * (endNorth - startNorth)) / factor);
-            intensity.east  = startEast  + ((time * (endEast  - startEast))  / factor);
-            intensity.south = startSouth + ((time * (endSouth - startSouth)) / factor);
-            intensity.west  = startWest  + ((time * (endWest  - startWest))  / factor);
-            intensity.roof  = startRoof  + ((time * (endRoof  - startRoof))  / factor);
+        if (intensityIndex < intensityAmount) {
+            intensity1 = intensityList[intensityIndex];
         }
-        else if (time >= 6 && time < 12) {
-            startNorth = 0.5;
-            endNorth   = 0.0;
-            startEast  = 1.0;
-            endEast    = 0.5;
-            startSouth = 0.5;
-            endSouth   = 1.0;
-            startWest  = 0.0;
-            endWest    = 0.5;
-            startRoof  = 0.5;
-            endRoof    = 0.8;
-
-            intensity.north = startNorth + (((time - 6) * (endNorth - startNorth)) / factor);
-            intensity.east  = startEast  + (((time - 6) * (endEast  - startEast))  / factor);
-            intensity.south = startSouth + (((time - 6) * (endSouth - startSouth)) / factor);
-            intensity.west  = startWest  + (((time - 6) * (endWest  - startWest))  / factor);
-            intensity.roof  = startRoof  + (((time - 6) * (endRoof  - startRoof))  / factor);
-        }
-        else if (time >= 12 && time <= 18 ) {
-            startNorth = 0.0;
-            endNorth   = 0.5;
-            startEast  = 0.5;
-            endEast    = 0.0;
-            startSouth = 1.0;
-            endSouth   = 0.5;
-            startWest  = 0.5;
-            endWest    = 1.0;
-            startRoof  = 0.8;
-            endRoof    = 0.5;
-
-            intensity.north = startNorth + (((time - 12) * (endNorth - startNorth)) / factor);
-            intensity.east  = startEast  + (((time - 12) * (endEast  - startEast))  / factor);
-            intensity.south = startSouth + (((time - 12) * (endSouth - startSouth)) / factor);
-            intensity.west  = startWest  + (((time - 12) * (endWest  - startWest))  / factor);
-            intensity.roof  = startRoof  + (((time - 12) * (endRoof  - startRoof))  / factor);
-        }
-        else if (time >= 18 && time < 24 ) {
-            startNorth = 0.5;
-            endNorth   = 1.0;
-            startEast  = 0.0;
-            endEast    = 0.5;
-            startSouth = 0.5;
-            endSouth   = 0.0;
-            startWest  = 1.0;
-            endWest    = 0.5;
-            startRoof  = 0.5;
-            endRoof    = 0.8;
-
-            intensity.north = startNorth + (((time - 18) * (endNorth - startNorth)) / factor);
-            intensity.east  = startEast  + (((time - 18) * (endEast  - startEast))  / factor);
-            intensity.south = startSouth + (((time - 18) * (endSouth - startSouth)) / factor);
-            intensity.west  = startWest  + (((time - 18) * (endWest  - startWest))  / factor);
-            intensity.roof  = startRoof  + (((time - 18) * (endRoof  - startRoof))  / factor);
+        else {
+            intensity1 = intensityList[0];
         }
 
-        return intensity;
+        if ((intensityIndex + 1) < intensityAmount) {
+            intensity2 = intensityList[(intensityIndex + 1)];
+        }
+        else {
+            intensity2 = intensityList[0];
+        }
+
+
+        for (i = 0; i < intensityAmount; i++) {
+            if (intensity1[i] >= intensity2[i]) {
+                result[i] = intensity1[i] - ((time % scale) * (intensity1[i] - intensity2[i]) / scale);
+            }
+            else {
+                result[i] = intensity1[i] + ((time % scale) * (intensity2[i] - intensity1[i]) / scale);
+            }
+        }
+
+        return result;
     };
 
+
+
     // ------------------------------------------------------------------------------------------------ Public
+
+
 
     pub.init = function () {
         pub.updateColors();
 
         // Simulate a day
-        /**/
+        /** /
         setInterval(function() {
             priv.time = Math.round((priv.time + 0.1) * 100) / 100;
             if (priv.time >= priv.day) {
@@ -227,7 +193,6 @@ function SolarAltitude(win, doc, $, domId, cubeColor) {
             solarIntensity = { north: 0, east: 0, south: 0, west: 0, roof: 0},
             r, g, b;
 
-
         // Dynamic light and brightness
         /**/
         brightness     = priv.getBrightness(priv.time);
@@ -235,41 +200,40 @@ function SolarAltitude(win, doc, $, domId, cubeColor) {
         solarIntensity = priv.getSolarIntensity(priv.time);
         /**/
 
-
         // Render world color
-        r = Math.round((priv.worldColor.r + solarColor.r) / 200 * brightness);
-        g = Math.round((priv.worldColor.g + solarColor.g) / 200 * brightness);
-        b = Math.round((priv.worldColor.b + solarColor.b) / 200 * brightness);
+        r = Math.round(((priv.worldColor.r + solarColor.r) / (2*100)) * brightness);
+        g = Math.round(((priv.worldColor.g + solarColor.g) / (2*100)) * brightness);
+        b = Math.round(((priv.worldColor.b + solarColor.b) / (2*100)) * brightness);
         priv.shapes.world.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
 
         // Render north color
-        r = Math.round((priv.cubeColor.north.r + (solarColor.r * solarIntensity.north)) / 200 * brightness);
-        g = Math.round((priv.cubeColor.north.g + (solarColor.g * solarIntensity.north)) / 200 * brightness);
-        b = Math.round((priv.cubeColor.north.b + (solarColor.b * solarIntensity.north)) / 200 * brightness);
+        r = Math.round(((priv.cubeColor.north.r + (solarColor.r * solarIntensity[0])) / (2 * 100)) * brightness);
+        g = Math.round(((priv.cubeColor.north.g + (solarColor.g * solarIntensity[0])) / (2 * 100)) * brightness);
+        b = Math.round(((priv.cubeColor.north.b + (solarColor.b * solarIntensity[0])) / (2 * 100)) * brightness);
         priv.shapes.north.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
 
         // Render east color
-        r = Math.round((priv.cubeColor.east.r + (solarColor.r * solarIntensity.east)) / 200 * brightness);
-        g = Math.round((priv.cubeColor.east.g + (solarColor.g * solarIntensity.east)) / 200 * brightness);
-        b = Math.round((priv.cubeColor.east.b + (solarColor.b * solarIntensity.east)) / 200 * brightness);
+        r = Math.round(((priv.cubeColor.east.r + (solarColor.r * solarIntensity[1])) / (2 * 100)) * brightness);
+        g = Math.round(((priv.cubeColor.east.g + (solarColor.g * solarIntensity[1])) / (2 * 100)) * brightness);
+        b = Math.round(((priv.cubeColor.east.b + (solarColor.b * solarIntensity[1])) / (2 * 100)) * brightness);
         priv.shapes.east.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
 
         // Render south color
-        r = Math.round((priv.cubeColor.south.r + (solarColor.r * solarIntensity.south)) / 200 * brightness);
-        g = Math.round((priv.cubeColor.south.g + (solarColor.g * solarIntensity.south)) / 200 * brightness);
-        b = Math.round((priv.cubeColor.south.b + (solarColor.b * solarIntensity.south)) / 200 * brightness);
+        r = Math.round(((priv.cubeColor.south.r + (solarColor.r * solarIntensity[2])) / (2 * 100)) * brightness);
+        g = Math.round(((priv.cubeColor.south.g + (solarColor.g * solarIntensity[2])) / (2 * 100)) * brightness);
+        b = Math.round(((priv.cubeColor.south.b + (solarColor.b * solarIntensity[2])) / (2 * 100)) * brightness);
         priv.shapes.south.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
 
         // Render west color
-        r = Math.round((priv.cubeColor.west.r + (solarColor.r * solarIntensity.west)) / 200 * brightness);
-        g = Math.round((priv.cubeColor.west.g + (solarColor.g * solarIntensity.west)) / 200 * brightness);
-        b = Math.round((priv.cubeColor.west.b + (solarColor.b * solarIntensity.west)) / 200 * brightness);
+        r = Math.round(((priv.cubeColor.west.r + (solarColor.r * solarIntensity[3])) / (2 * 100)) * brightness);
+        g = Math.round(((priv.cubeColor.west.g + (solarColor.g * solarIntensity[3])) / (2 * 100)) * brightness);
+        b = Math.round(((priv.cubeColor.west.b + (solarColor.b * solarIntensity[3])) / (2 * 100)) * brightness);
         priv.shapes.west.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
 
         // Render roof color
-        r = Math.round((priv.cubeColor.roof.r + solarColor.r * solarIntensity.roof) / 200 * brightness);
-        g = Math.round((priv.cubeColor.roof.g + solarColor.g * solarIntensity.roof) / 200 * brightness);
-        b = Math.round((priv.cubeColor.roof.b + solarColor.b * solarIntensity.roof) / 200 * brightness);
+        r = Math.round(((priv.cubeColor.roof.r + solarColor.r * solarIntensity[4]) / (2 * 100)) * brightness);
+        g = Math.round(((priv.cubeColor.roof.g + solarColor.g * solarIntensity[4]) / (2 * 100)) * brightness);
+        b = Math.round(((priv.cubeColor.roof.b + solarColor.b * solarIntensity[4]) / (2 * 100)) * brightness);
         priv.shapes.roof.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
     };
 
