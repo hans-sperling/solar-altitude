@@ -1,4 +1,4 @@
-function SolarAltitude(win, doc, $, domId, cubeColor) {
+function SolarAltitude(win, doc, $, domId, cubeColors) {
     var priv = {}, pub = {};
 
     // ----------------------------------------------------------------------------------------------- Private
@@ -12,7 +12,7 @@ function SolarAltitude(win, doc, $, domId, cubeColor) {
         roof:  $(domId + ' .roof')
     };
 
-    priv.cubeColor = cubeColor;
+    priv.cubeColors = cubeColors;
 
     priv.brightness = {
         min: 25,
@@ -23,10 +23,11 @@ function SolarAltitude(win, doc, $, domId, cubeColor) {
 
     priv.time = 8; // 00:00 - 24:00
 
-    priv.worldColor = {
-        r: 255,
-        g: 255,
-        b: 255
+    priv.worldColors = {
+        list: [
+            { r: 255, g: 255, b: 255 }
+        ],
+        amount: 1
     };
 
     priv.solarColors = {
@@ -69,55 +70,30 @@ function SolarAltitude(win, doc, $, domId, cubeColor) {
 
 
 
-    /**
-     * Returns solar color at the given time
-     */
-    priv.getSolarColor = function getSolarColor(time) {
-        var colorlist   = priv.solarColors.list,
-            colorAmount = priv.solarColors.amount,
-            day         = priv.day,
-            scale       = day / colorAmount,
-            colorIndex  = Math.floor(time / scale),
-            result      = {r: 0, g: 0, b: 0},
-            color1, color2;
-
-        // Gets start and end color of the current day section
-        // todo: Check for real amount of colors. If there is only one color the following does not make sense.
-        if (colorIndex < colorAmount) {
-            color1 = colorlist[colorIndex];
-        }
-        else {
-            color1 = colorlist[0];
-        }
-
-        if ((colorIndex + 1) < colorAmount) {
-            color2 = colorlist[(colorIndex + 1)];
-        }
-        else {
-            color2 = colorlist[0];
-        }
-
+    priv.getRgb = function getRgb(color1, color2, time, scale) {
+        var timeScale = time % scale,
+            result    = {};
 
         // Checks the start and end color and computes a color between thees dependent on the current time
         if (color1.r >= color2.r) {
-            result.r = color1.r - ((time % scale) * (color1.r - color2.r) / scale);
+            result.r = color1.r - (timeScale * (color1.r - color2.r) / scale);
         }
         else {
-            result.r = color1.r + ((time % scale) * (color2.r - color1.r) / scale);
+            result.r = color1.r + (timeScale * (color2.r - color1.r) / scale);
         }
 
         if (color1.g >= color2.g) {
-            result.g = color1.g - ((time % scale) * (color1.g - color2.g) / scale);
+            result.g = color1.g - (timeScale * (color1.g - color2.g) / scale);
         }
         else {
-            result.g = color1.g + ((time % scale) * (color2.g - color1.g) / scale);
+            result.g = color1.g + (timeScale * (color2.g - color1.g) / scale);
         }
 
         if (color1.b >= color2.b) {
-            result.b = color1.b - ((time % scale) * (color1.b - color2.b) / scale);
+            result.b = color1.b - (timeScale * (color1.b - color2.b) / scale);
         }
         else {
-            result.b = color1.b + ((time % scale) * (color2.b - color1.b) / scale);
+            result.b = color1.b + (timeScale * (color2.b - color1.b) / scale);
         }
 
         return result;
@@ -125,7 +101,92 @@ function SolarAltitude(win, doc, $, domId, cubeColor) {
 
 
 
-    // -----------------------------------------------------------------------------------------------------------------
+    priv.getColor = function getColor(colors, time) {
+        var colorlist   = colors.list,
+            colorAmount = colors.amount,
+            day         = priv.day,
+            scale       = day / colorAmount,
+            colorIndex  = Math.floor(time / scale),
+            result      = {r: 0, g: 0, b: 0},
+            color1, color2;
+
+        if (colorAmount == 1) {
+            result = colorlist[0];
+        }
+        else if (colorAmount > 1) {
+            if (colorIndex < colorAmount) {
+                color1 = colorlist[colorIndex];
+            }
+            else {
+                color1 = colorlist[0];
+            }
+
+            if ((colorIndex + 1) < colorAmount) {
+                color2 = colorlist[(colorIndex + 1)];
+            }
+            else {
+                color2 = colorlist[0];
+            }
+
+            result = priv.getRgb(color1, color2, time, scale);
+        }
+
+        return result;
+    };
+
+
+
+    priv.getWorldColor = function getWorldColor(time) {
+        return priv.getColor(priv.worldColors, time)
+    };
+
+
+
+    priv.getCubeColor = function getCubeColor(time) {
+        var colorlist   = priv.cubeColors.list,
+            colorAmount = priv.cubeColors.amount,
+            day         = priv.day,
+            scale       = day / colorAmount,
+            colorIndex  = Math.floor(time / scale),
+            result      = {r: 0, g: 0, b: 0},
+            color1, color2, i, shapeAmount;
+
+        if (colorAmount > 1) {
+            if (colorIndex < colorAmount) {
+                color1 = colorlist[colorIndex];
+            }
+            else {
+                color1 = colorlist[0];
+            }
+
+            if ((colorIndex + 1) < colorAmount) {
+                color2 = colorlist[(colorIndex + 1)];
+            }
+            else {
+                color2 = colorlist[0];
+            }
+
+
+            shapeAmount = Math.min(color1.length, color2.length);
+            for (i = 0; i < shapeAmount; i++) {
+                result[i] = priv.getRgb(color1[i], color2[i], time, scale);
+            }
+        }
+        else {
+            result = colorlist[0];
+        }
+        return result;
+    };
+
+
+
+
+    /**
+     * Returns solar color at the given time
+     */
+    priv.getSolarColor = function getSolarColor(time) {
+        return priv.getColor(priv.solarColors, time);
+    };
 
 
 
@@ -190,51 +251,62 @@ function SolarAltitude(win, doc, $, domId, cubeColor) {
 
     pub.updateColors = function updateColors() {
         var brightness     = 100,
+            time           = priv.time,
             solarColor     = { r: 255, g: 255, b: 255 },
             solarIntensity = { north: 0, east: 0, south: 0, west: 0, roof: 0},
+            worldColor     = { r: 255, g: 255, b: 255},
+            cubeColor      = {
+                north: { r: 127, g: 127, b: 127 },
+                east:  { r: 127, g: 127, b: 127 },
+                south: { r: 127, g: 127, b: 127 },
+                west:  { r: 127, g: 127, b: 127 },
+                roof:  { r: 127, g: 127, b: 127 }
+            },
             r, g, b;
 
         // Dynamic light and brightness
         /**/
-        brightness     = priv.getBrightness(priv.time);
-        solarColor     = priv.getSolarColor(priv.time);
-        solarIntensity = priv.getSolarIntensity(priv.time);
+        //brightness     = priv.getBrightness(time);
+        solarColor     = priv.getSolarColor(time);
+        solarIntensity = priv.getSolarIntensity(time);
+        worldColor     = priv.getWorldColor(time);
+        cubeColor      = priv.getCubeColor(time);
         /**/
 
         // Render world color
-        r = Math.round(((priv.worldColor.r + solarColor.r) / (2*100)) * brightness);
-        g = Math.round(((priv.worldColor.g + solarColor.g) / (2*100)) * brightness);
-        b = Math.round(((priv.worldColor.b + solarColor.b) / (2*100)) * brightness);
+        r = Math.round(((worldColor.r + solarColor.r) / (2*100)) * brightness);
+        g = Math.round(((worldColor.g + solarColor.g) / (2*100)) * brightness);
+        b = Math.round(((worldColor.b + solarColor.b) / (2*100)) * brightness);
         priv.shapes.world.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
 
         // Render north color
-        r = Math.round(((priv.cubeColor.north.r + (solarColor.r * solarIntensity[0])) / (2 * 100)) * brightness);
-        g = Math.round(((priv.cubeColor.north.g + (solarColor.g * solarIntensity[0])) / (2 * 100)) * brightness);
-        b = Math.round(((priv.cubeColor.north.b + (solarColor.b * solarIntensity[0])) / (2 * 100)) * brightness);
+        r = Math.round(((cubeColor[0].r + (solarColor.r * solarIntensity[0])) / (2 * 100)) * brightness);
+        g = Math.round(((cubeColor[0].g + (solarColor.g * solarIntensity[0])) / (2 * 100)) * brightness);
+        b = Math.round(((cubeColor[0].b + (solarColor.b * solarIntensity[0])) / (2 * 100)) * brightness);
         priv.shapes.north.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
 
         // Render east color
-        r = Math.round(((priv.cubeColor.east.r + (solarColor.r * solarIntensity[1])) / (2 * 100)) * brightness);
-        g = Math.round(((priv.cubeColor.east.g + (solarColor.g * solarIntensity[1])) / (2 * 100)) * brightness);
-        b = Math.round(((priv.cubeColor.east.b + (solarColor.b * solarIntensity[1])) / (2 * 100)) * brightness);
+        r = Math.round(((cubeColor[1].r + (solarColor.r * solarIntensity[1])) / (2 * 100)) * brightness);
+        g = Math.round(((cubeColor[1].g + (solarColor.g * solarIntensity[1])) / (2 * 100)) * brightness);
+        b = Math.round(((cubeColor[1].b + (solarColor.b * solarIntensity[1])) / (2 * 100)) * brightness);
         priv.shapes.east.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
 
         // Render south color
-        r = Math.round(((priv.cubeColor.south.r + (solarColor.r * solarIntensity[2])) / (2 * 100)) * brightness);
-        g = Math.round(((priv.cubeColor.south.g + (solarColor.g * solarIntensity[2])) / (2 * 100)) * brightness);
-        b = Math.round(((priv.cubeColor.south.b + (solarColor.b * solarIntensity[2])) / (2 * 100)) * brightness);
+        r = Math.round(((cubeColor[2].r + (solarColor.r * solarIntensity[2])) / (2 * 100)) * brightness);
+        g = Math.round(((cubeColor[2].g + (solarColor.g * solarIntensity[2])) / (2 * 100)) * brightness);
+        b = Math.round(((cubeColor[2].b + (solarColor.b * solarIntensity[2])) / (2 * 100)) * brightness);
         priv.shapes.south.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
 
         // Render west color
-        r = Math.round(((priv.cubeColor.west.r + (solarColor.r * solarIntensity[3])) / (2 * 100)) * brightness);
-        g = Math.round(((priv.cubeColor.west.g + (solarColor.g * solarIntensity[3])) / (2 * 100)) * brightness);
-        b = Math.round(((priv.cubeColor.west.b + (solarColor.b * solarIntensity[3])) / (2 * 100)) * brightness);
+        r = Math.round(((cubeColor[3].r + (solarColor.r * solarIntensity[3])) / (2 * 100)) * brightness);
+        g = Math.round(((cubeColor[3].g + (solarColor.g * solarIntensity[3])) / (2 * 100)) * brightness);
+        b = Math.round(((cubeColor[3].b + (solarColor.b * solarIntensity[3])) / (2 * 100)) * brightness);
         priv.shapes.west.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
 
         // Render roof color
-        r = Math.round(((priv.cubeColor.roof.r + solarColor.r * solarIntensity[4]) / (2 * 100)) * brightness);
-        g = Math.round(((priv.cubeColor.roof.g + solarColor.g * solarIntensity[4]) / (2 * 100)) * brightness);
-        b = Math.round(((priv.cubeColor.roof.b + solarColor.b * solarIntensity[4]) / (2 * 100)) * brightness);
+        r = Math.round(((cubeColor[4].r + solarColor.r * solarIntensity[4]) / (2 * 100)) * brightness);
+        g = Math.round(((cubeColor[4].g + solarColor.g * solarIntensity[4]) / (2 * 100)) * brightness);
+        b = Math.round(((cubeColor[4].b + solarColor.b * solarIntensity[4]) / (2 * 100)) * brightness);
         priv.shapes.roof.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
     };
 
@@ -250,33 +322,58 @@ jQuery(document).ready(function() {
     'use strict';
 
     var red = {
-            north: { r: 255, g: 0, b: 0 },
-            east:  { r: 255, g: 0, b: 0 },
-            south: { r: 255, g: 0, b: 0 },
-            west:  { r: 255, g: 0, b: 0 },
-            roof:  { r: 255, g: 0, b: 0 }
+            list: [[
+                {r: 255, g: 0, b: 0},
+                {r: 255, g: 0, b: 0},
+                {r: 255, g: 0, b: 0},
+                {r: 255, g: 0, b: 0},
+                {r: 255, g: 0, b: 0}
+            ]],
+            amount: 1
         },
         green = {
-            north: { r: 0, g: 255, b: 0 },
-            east:  { r: 0, g: 255, b: 0 },
-            south: { r: 0, g: 255, b: 0 },
-            west:  { r: 0, g: 255, b: 0 },
-            roof:  { r: 0, g: 255, b: 0 }
+            list: [[
+                {r: 0, g: 255, b: 0},
+                {r: 0, g: 255, b: 0},
+                {r: 0, g: 255, b: 0},
+                {r: 0, g: 255, b: 0},
+                {r: 0, g: 255, b: 0}
+            ]],
+            amount: 1
         },
         blue = {
-            north: { r: 0, g: 0, b: 255 },
-            east:  { r: 0, g: 0, b: 255 },
-            south: { r: 0, g: 0, b: 255 },
-            west:  { r: 0, g: 0, b: 255 },
-            roof:  { r: 0, g: 0, b: 255 }
+            list: [[
+                {r: 0, g: 0, b: 255},
+                {r: 0, g: 0, b: 255},
+                {r: 0, g: 0, b: 255},
+                {r: 0, g: 0, b: 255},
+                {r: 0, g: 0, b: 255}
+            ]],
+            amount: 1
         },
-        grey ={
-            north: { r: 127, g: 127, b: 127 },
-            east:  { r: 127, g: 127, b: 127 },
-            south: { r: 127, g: 127, b: 127 },
-            west:  { r: 127, g: 127, b: 127 },
-            roof:  { r: 127, g: 127, b: 127 }
+        grey = {
+            list: [[
+                {r: 255, g: 0, b: 0},
+                {r: 255, g: 0, b: 0},
+                {r: 255, g: 0, b: 0},
+                {r: 255, g: 0, b: 0},
+                {r: 255, g: 0, b: 0}
+            ], [
+                {r: 0, g: 255, b: 0},
+                {r: 0, g: 255, b: 0},
+                {r: 0, g: 255, b: 0},
+                {r: 0, g: 255, b: 0},
+                {r: 0, g: 255, b: 0}
+            ], [
+                {r: 0, g: 0, b: 255},
+                {r: 0, g: 0, b: 255},
+                {r: 0, g: 0, b: 255},
+                {r: 0, g: 0, b: 255},
+                {r: 0, g: 0, b: 255}
+            ]],
+            amount: 2
         },
+
         solarAltitudeRed   = new SolarAltitude(window, document, jQuery, '#appRed', red),
         solarAltitudeGreen = new SolarAltitude(window, document, jQuery, '#appGreen', green),
         solarAltitudeBlue  = new SolarAltitude(window, document, jQuery, '#appBlue', blue),
