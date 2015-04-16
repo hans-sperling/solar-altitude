@@ -56,171 +56,68 @@ function SolarAltitude(win, doc, $, domId, cubeColors) {
     // -----------------------------------------------------------------------------------------------------------------
 
 
+    
+    priv.getRelativeNumber = function getRelativeNumber(start, end, time, scale) {
+        var timeScale = (time % scale);
+            
+        if (start >= end) {
+            return (start - (timeScale * (start - end) / scale));
+        }
+        else {
+            return (start + (timeScale * (end - start) / scale));
+        }
+    };
 
-    /**
-     * Returns brightness as percentage of the day between min and max.
-     */
-    priv.getBrightness = function getBrightness(time) {
-        var min = priv.brightness.min,
-            max = priv.brightness.max,
-            day = priv.day;
-
-        return ((((min - max) * Math.cos(((Math.PI * time) * 2 / day))) + max + min) / 2);
+    
+    
+    priv.getRgb = function getRgb(color1, color2, time, scale) {        
+        return {
+            r: priv.getRelativeNumber(color1.r, color2.r, time, scale),
+            g: priv.getRelativeNumber(color1.g, color2.g, time, scale),
+            b: priv.getRelativeNumber(color1.b, color2.b, time, scale)
+        }
     };
 
 
 
-    priv.getRgb = function getRgb(color1, color2, time, scale) {
-        var timeScale = time % scale,
-            result    = {};
-
-        // Checks the start and end color and computes a color between thees dependent on the current time
-        if (color1.r >= color2.r) {
-            result.r = color1.r - (timeScale * (color1.r - color2.r) / scale);
-        }
-        else {
-            result.r = color1.r + (timeScale * (color2.r - color1.r) / scale);
-        }
-
-        if (color1.g >= color2.g) {
-            result.g = color1.g - (timeScale * (color1.g - color2.g) / scale);
-        }
-        else {
-            result.g = color1.g + (timeScale * (color2.g - color1.g) / scale);
-        }
-
-        if (color1.b >= color2.b) {
-            result.b = color1.b - (timeScale * (color1.b - color2.b) / scale);
-        }
-        else {
-            result.b = color1.b + (timeScale * (color2.b - color1.b) / scale);
-        }
-
-        return result;
-    };
-
-
-
-    priv.getColor = function getColor(colors, time) {
-        var colorlist   = colors.list,
-            colorAmount = colors.amount,
+    priv.getColor = function getColor(colorList, time) {
+        var colorAmount = colorList.amount,
+            colors      = priv.getListEntries(colorList, time),
             day         = priv.day,
             scale       = day / colorAmount,
             colorIndex  = Math.floor(time / scale),
-            result      = {r: 0, g: 0, b: 0},
-            color1, color2;
+            result      = {r: 0, g: 0, b: 0};
 
-        if (colorAmount == 1) {
-            result = colorlist[0];
-        }
-        else if (colorAmount > 1) {
-            if (colorIndex < colorAmount) {
-                color1 = colorlist[colorIndex];
-            }
-            else {
-                color1 = colorlist[0];
-            }
-
-            if ((colorIndex + 1) < colorAmount) {
-                color2 = colorlist[(colorIndex + 1)];
-            }
-            else {
-                color2 = colorlist[0];
-            }
-
-            result = priv.getRgb(color1, color2, time, scale);
-        }
-
-        return result;
+        return priv.getRgb(colors[0], colors[1], time, scale);
     };
 
 
 
-    priv.getWorldColor = function getWorldColor(time) {
-        return priv.getColor(priv.worldColors, time)
-    };
+    priv.getListEntries = function getListEntries(currentList, time) {
+        var list   = currentList.list,
+            amount = currentList.amount,
+            day    = priv.day,
+            scale  = day / amount,
+            index  = Math.floor(time / scale),
+            result = [];
 
-
-
-    priv.getCubeColor = function getCubeColor(time) {
-        var colorlist   = priv.cubeColors.list,
-            colorAmount = priv.cubeColors.amount,
-            day         = priv.day,
-            scale       = day / colorAmount,
-            colorIndex  = Math.floor(time / scale),
-            result      = {r: 0, g: 0, b: 0},
-            color1, color2, i, shapeAmount;
-
-        if (colorAmount > 1) {
-            if (colorIndex < colorAmount) {
-                color1 = colorlist[colorIndex];
-            }
-            else {
-                color1 = colorlist[0];
-            }
-
-            if ((colorIndex + 1) < colorAmount) {
-                color2 = colorlist[(colorIndex + 1)];
-            }
-            else {
-                color2 = colorlist[0];
-            }
-
-
-            shapeAmount = Math.min(color1.length, color2.length);
-            for (i = 0; i < shapeAmount; i++) {
-                result[i] = priv.getRgb(color1[i], color2[i], time, scale);
-            }
+        if (amount == 1) {
+            result[0] = list[0];
+            result[1] = list[0];
         }
         else {
-            result = colorlist[0];
-        }
-        return result;
-    };
-
-
-
-
-    /**
-     * Returns solar color at the given time
-     */
-    priv.getSolarColor = function getSolarColor(time) {
-        return priv.getColor(priv.solarColors, time);
-    };
-
-
-
-    priv.getSolarIntensity = function getSolarIntensity(time) {
-        var intensityList   = priv.solarIntensity.list,
-            intensityAmount = priv.solarIntensity.amount,
-            day             = priv.day,
-            scale           = day / intensityAmount,
-            intensityIndex  = Math.floor(time / scale),
-            result          = [],
-            intensity1, intensity2, i, shapeAmount;
-
-        if (intensityIndex < intensityAmount) {
-            intensity1 = intensityList[intensityIndex];
-        }
-        else {
-            intensity1 = intensityList[0];
-        }
-
-        if ((intensityIndex + 1) < intensityAmount) {
-            intensity2 = intensityList[(intensityIndex + 1)];
-        }
-        else {
-            intensity2 = intensityList[0];
-        }
-
-
-        shapeAmount = Math.min(intensity1.length, intensity2.length);
-        for (i = 0; i < shapeAmount; i++) {
-            if (intensity1[i] >= intensity2[i]) {
-                result[i] = intensity1[i] - ((time % scale) * (intensity1[i] - intensity2[i]) / scale);
+            if (index < amount) {
+                result[0] = list[index];
             }
             else {
-                result[i] = intensity1[i] + ((time % scale) * (intensity2[i] - intensity1[i]) / scale);
+                result[0] = list[0];
+            }
+
+            if ((index + 1) < amount) {
+                result[1] = list[(index + 1)];
+            }
+            else {
+                result[1] = list[0];
             }
         }
 
@@ -249,6 +146,71 @@ function SolarAltitude(win, doc, $, domId, cubeColors) {
         /**/
     };
 
+
+
+    /**
+     * Returns brightness as percentage of the day between min and max.
+     */
+    pub.getBrightness = function getBrightness(time) {
+        var min = priv.brightness.min,
+            max = priv.brightness.max,
+            day = priv.day;
+
+        return ((((min - max) * Math.cos(((Math.PI * time) * 2 / day))) + max + min) / 2);
+    };
+
+
+
+    pub.getSolarColor = function getSolarColor(time) {
+        return priv.getColor(priv.solarColors, time);
+    };
+
+
+
+    pub.getMapColor = function getMapColor(time) {
+        return priv.getColor(priv.worldColors, time)
+    };
+
+
+
+    pub.getCubeColor = function getCubeColor(time) {
+        var colorAmount = priv.cubeColors.amount,
+            colors      = priv.getListEntries(priv.cubeColors, time),
+            day         = priv.day,
+            scale       = day / colorAmount,
+            colorIndex  = Math.floor(time / scale),
+            result      = [],
+            i, shapeAmount;
+
+        shapeAmount = Math.min(colors[0].length, colors[1].length);
+        for (i = 0; i < shapeAmount; i++) {
+            result[i] = priv.getRgb(colors[0][i], colors[1][i], time, scale);
+        }
+
+        return result;
+    };
+
+
+
+    pub.getSolarIntensity = function getSolarIntensity(time) {
+        var list      = priv.solarIntensity.list,
+            amount    = priv.solarIntensity.amount,
+            intensity = priv.getListEntries(priv.solarIntensity, time),
+            day       = priv.day,
+            scale     = day / amount,
+            result    = [],
+            i, shapeAmount;
+
+        shapeAmount = Math.min(intensity[0].length, intensity[1].length);
+        for (i = 0; i < shapeAmount; i++) {
+            result[i] = priv.getRelativeNumber(intensity[0][i], intensity[1][i], time, scale);
+        }
+
+        return result;
+    };
+
+
+
     pub.updateColors = function updateColors() {
         var brightness     = 100,
             time           = priv.time,
@@ -266,11 +228,11 @@ function SolarAltitude(win, doc, $, domId, cubeColors) {
 
         // Dynamic light and brightness
         /**/
-        //brightness     = priv.getBrightness(time);
-        solarColor     = priv.getSolarColor(time);
-        solarIntensity = priv.getSolarIntensity(time);
-        worldColor     = priv.getWorldColor(time);
-        cubeColor      = priv.getCubeColor(time);
+        brightness     = pub.getBrightness(time);
+        solarColor     = pub.getSolarColor(time);
+        solarIntensity = pub.getSolarIntensity(time);
+        worldColor     = pub.getMapColor(time);
+        cubeColor      = pub.getCubeColor(time);
         /**/
 
         // Render world color
@@ -310,9 +272,15 @@ function SolarAltitude(win, doc, $, domId, cubeColors) {
         priv.shapes.roof.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
     };
 
+
+
     // ------------------------------------------------------------------------------------------------ Return
 
+
+
     return pub;
+
+
 
 }
 
