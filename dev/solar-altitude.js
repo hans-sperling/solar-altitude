@@ -70,25 +70,12 @@ function SolarAltitude(win, doc, $, domId, cubeColors) {
 
     
     
-    priv.getRgb = function getRgb(color1, color2, time, scale) {        
+    priv.getRgbColor = function getRgbColor(rgbStart, rgbEnd, time, scale) {
         return {
-            r: priv.getRelativeNumber(color1.r, color2.r, time, scale),
-            g: priv.getRelativeNumber(color1.g, color2.g, time, scale),
-            b: priv.getRelativeNumber(color1.b, color2.b, time, scale)
+            r: priv.getRelativeNumber(rgbStart.r, rgbEnd.r, time, scale),
+            g: priv.getRelativeNumber(rgbStart.g, rgbEnd.g, time, scale),
+            b: priv.getRelativeNumber(rgbStart.b, rgbEnd.b, time, scale)
         }
-    };
-
-
-
-    priv.getColor = function getColor(colorList, time) {
-        var colorAmount = colorList.amount,
-            colors      = priv.getListEntries(colorList, time),
-            day         = priv.day,
-            scale       = day / colorAmount,
-            colorIndex  = Math.floor(time / scale),
-            result      = {r: 0, g: 0, b: 0};
-
-        return priv.getRgb(colors[0], colors[1], time, scale);
     };
 
 
@@ -122,6 +109,21 @@ function SolarAltitude(win, doc, $, domId, cubeColors) {
         }
 
         return result;
+    };
+
+
+
+    priv.getColor = function getColor(colorList, time) {
+        var colorAmount = colorList.lenth,
+            colors      = priv.getListEntries(colorList, time),
+            day         = priv.day,
+            scale       = day / colorAmount,
+            colorIndex  = Math.floor(time / scale),
+            result      = {r: 0, g: 0, b: 0};
+
+        
+
+        return priv.getRgbColor(colors[0], colors[1], time, scale);
     };
 
 
@@ -162,13 +164,13 @@ function SolarAltitude(win, doc, $, domId, cubeColors) {
 
 
     pub.getSolarColor = function getSolarColor(time) {
-        return priv.getColor(priv.solarColors, time);
+        return priv.getColor(priv.solarColors.list, time);
     };
 
 
 
     pub.getMapColor = function getMapColor(time) {
-        return priv.getColor(priv.worldColors, time)
+        return priv.getColor(priv.worldColors.list, time)
     };
 
 
@@ -184,7 +186,7 @@ function SolarAltitude(win, doc, $, domId, cubeColors) {
 
         shapeAmount = Math.min(colors[0].length, colors[1].length);
         for (i = 0; i < shapeAmount; i++) {
-            result[i] = priv.getRgb(colors[0][i], colors[1][i], time, scale);
+            result[i] = priv.getRgbColor(colors[0][i], colors[1][i], time, scale);
         }
 
         return result;
