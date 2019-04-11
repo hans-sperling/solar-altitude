@@ -3,6 +3,7 @@ function SolarAltitude(win, doc, $, domId, cubeColors) {
 
     // ----------------------------------------------------------------------------------------------- Private
 
+    priv.animate = !true;
     priv.shapes = {
         world : $(domId),
         north : $(domId + ' .north'),
@@ -23,33 +24,24 @@ function SolarAltitude(win, doc, $, domId, cubeColors) {
 
     priv.time = 8; // 00:00 - 24:00
 
-    priv.worldColors = {
-        list: [
-            { r: 255, g: 255, b: 255 }
-        ],
-        amount: 1
-    };
+    priv.worldColorList = [
+        { r: 255, g: 255, b: 255 }
+    ];
 
-    priv.solarColors = {
-        list: [
-            { r: 0,   g: 0,   b: 255 }, // 00:00 - Midnight color
-            { r: 255, g: 0,   b: 0   }, // 06:00 - Sunrise color
-            { r: 255, g: 255, b: 0   }, // 12:00 - Midday color
-            { r: 255, g: 0,   b: 0   }  // 18:00 - Sunset color
-        ],
-        amount: 4
-    };
+    priv.solarColorList = [
+        { r: 0,   g: 0,   b: 255 }, // 00:00 - Midnight color
+        { r: 255, g: 0,   b: 0   }, // 06:00 - Sunrise color
+        { r: 255, g: 255, b: 0   }, // 12:00 - Midday color
+        { r: 255, g: 0,   b: 0   }  // 18:00 - Sunset color
+    ];
 
-    priv.solarIntensity = {
-        list: [
-            // [ north, east, south, west, front]
-            [0.8, 0.5, 0.2, 0.5, 1.0], // 00:00 - Solar light shines from the north
-            [0.5, 0.8, 0.5, 0.2, 1.0], // 06:00 - Solar light shines from the east
-            [0.2, 0.5, 0.8, 0.5, 1.0], // 12:00 - Solar light shines from the south
-            [0.5, 0.2, 0.5, 0.8, 1.0]  // 18:00 - Solar light shines from the west
-        ],
-        amount: 4
-    };
+    priv.solarIntensityList = [
+        // [ north, east, south, west, front]
+        [0.8, 0.5, 0.2, 0.5, 1.0], // 00:00 - Solar light shines from the north
+        [0.5, 0.8, 0.5, 0.2, 1.0], // 06:00 - Solar light shines from the east
+        [0.2, 0.5, 0.8, 0.5, 1.0], // 12:00 - Solar light shines from the south
+        [0.5, 0.2, 0.5, 0.8, 1.0]  // 18:00 - Solar light shines from the west
+    ];
 
 
 
@@ -81,61 +73,26 @@ function SolarAltitude(win, doc, $, domId, cubeColors) {
 
 
     priv.getListEntries = function getListEntries(currentList, time) {
-        var list   = currentList.list,
-            amount = currentList.amount,
+        var list   = currentList,
+            counter = currentList.length,
             day    = priv.day,
-            scale  = day / amount,
+            scale  = day / counter,
             index  = Math.floor(time / scale),
             result = [];
 
-        console.log('list', list);
-        if (amount == 1) {
+        if (counter === 1) {
             result[0] = list[0];
             result[1] = list[0];
         }
         else {
-            if (index < amount) {
+            if (index < counter) {
                 result[0] = list[index];
             }
             else {
                 result[0] = list[0];
             }
 
-            if ((index + 1) < amount) {
-                result[1] = list[(index + 1)];
-            }
-            else {
-                result[1] = list[0];
-            }
-        }
-
-        console.log('result', result);
-        return result;
-    };
-
-
-    priv.getListEntriesObj = function getListEntriesObj(colorObj, time) {
-        var list   = currentList.list,
-            amount = currentList.amount,
-            day    = priv.day,
-            scale  = day / amount,
-            index  = Math.floor(time / scale),
-            result = [];
-
-        console.log('list', list);
-        if (amount == 1) {
-            result[0] = list[0];
-            result[1] = list[0];
-        }
-        else {
-            if (index < amount) {
-                result[0] = list[index];
-            }
-            else {
-                result[0] = list[0];
-            }
-
-            if ((index + 1) < amount) {
+            if ((index + 1) < counter) {
                 result[1] = list[(index + 1)];
             }
             else {
@@ -148,15 +105,33 @@ function SolarAltitude(win, doc, $, domId, cubeColors) {
 
 
 
-    priv.getColor = function getColor(colorList, time) {
-        var colorAmount = colorList.lenth,
-            colors      = priv.getListEntries(colorList, time),
+
+    priv.getColorFromList = function getColorFromList(colorList, time) {
+        var colorCounter = colorList.length,
+            colors       = priv.getListEntries(colorList, time),
+            day          = priv.day,
+            scale        = day / colorCounter,
+            colorIndex   = Math.floor(time / scale),
+            result       = {r: 0, g: 0, b: 0};
+
+        return priv.getRgbColor(colors[0], colors[1], time, scale);
+    };
+
+
+
+
+    priv.getColorFromObj = function getColorFromObj(colorObj, time) {
+        var colorInput   = [colorObj],
+            colorCounter = colorInput.length,
+            colors       = priv.getListEntries(colorInput, time),
+
+
             day         = priv.day,
-            scale       = day / colorAmount,
+            scale       = day / colorCounter,
             colorIndex  = Math.floor(time / scale),
             result      = {r: 0, g: 0, b: 0};
 
-        
+
 
         return priv.getRgbColor(colors[0], colors[1], time, scale);
     };
@@ -168,19 +143,19 @@ function SolarAltitude(win, doc, $, domId, cubeColors) {
 
 
     pub.init = function () {
-        pub.updateColors();
-
-        // Simulate a day
-        /** /
-        setInterval(function() {
-            priv.time = Math.round((priv.time + 0.1) * 100) / 100;
-            if (priv.time >= priv.day) {
-                priv.time = 0;
-            }
+        if (priv.animate) {
+            // Simulate a day
+            setInterval(function() {
+                priv.time = Math.round((priv.time + 0.1) * 100) / 100;
+                if (priv.time >= priv.day) {
+                    priv.time = 0;
+                }
+                pub.updateColors();
+                console.log('Time: ', priv.time);
+            }, 100);
+        } else {
             pub.updateColors();
-            console.log('Time: ', priv.time);
-        }, 100);
-        /**/
+        }
     };
 
 
@@ -199,42 +174,39 @@ function SolarAltitude(win, doc, $, domId, cubeColors) {
 
 
     pub.getSolarColor = function getSolarColor(time) {
-        return priv.getColor(priv.solarColors, time);
+        return priv.getColorFromList(priv.solarColorList, time);
     };
 
 
 
     pub.getMapColor = function getMapColor(time) {
-        return priv.getColor(priv.worldColors, time)
+        return priv.getColorFromList(priv.worldColorList, time)
     };
 
 
 
-    pub.getCubeColor = function getCubeColor(time, cubeColor) {
+    pub.getCubeColor = function getCubeColor(time, rgbColor) {
+
         var colorAmount = priv.cubeColors.amount,
-            colors      = priv.getListEntriesObj(cubeColor, time),
+            resultColor      = priv.getColorFromObj(rgbColor, time),
             day         = priv.day,
             scale       = day / colorAmount,
             colorIndex  = Math.floor(time / scale),
             result      = [],
             i, shapeAmount;
 
-        shapeAmount = Math.min(colors[0].length, colors[1].length);
-        for (i = 0; i < shapeAmount; i++) {
-            result[i] = priv.getRgbColor(colors[0][i], colors[1][i], time, scale);
-        }
 
-        return result;
+        return resultColor;
     };
 
 
 
     pub.getSolarIntensity = function getSolarIntensity(time) {
-        var list      = priv.solarIntensity.list,
-            amount    = priv.solarIntensity.amount,
-            intensity = priv.getListEntries(priv.solarIntensity, time),
+        var list      = priv.solarIntensityList,
+            counter   = list.length,
+            intensity = priv.getListEntries(priv.solarIntensityList, time),
             day       = priv.day,
-            scale     = day / amount,
+            scale     = day / counter,
             result    = [],
             i, shapeAmount;
 
@@ -249,49 +221,21 @@ function SolarAltitude(win, doc, $, domId, cubeColors) {
 
 
     pub.updateColors = function updateColors() {
-/*
-        var brightness     = 100,
-            time           = priv.time,
-            solarColor     = { r: 255, g: 255, b: 255 },
-            solarIntensity = { north: 0, east: 0, south: 0, west: 0, front: 0},
-            worldColor     = { r: 255, g: 255, b: 255},
-            cubeColor      = {
-                north: { r: 127, g: 127, b: 127 },
-                east:  { r: 127, g: 127, b: 127 },
-                south: { r: 127, g: 127, b: 127 },
-                west:  { r: 127, g: 127, b: 127 },
-                front: { r: 127, g: 127, b: 127 }
-            },
-            r, g, b;*/
-        var brightness     = 100,
-            solarColor     = { r: 255, g: 255, b: 255 },
-            solarIntensity = { north: 0, east: 0, south: 0, west: 0, front: 0},
-            worldColor     = { r: 255, g: 255, b: 255},
-            cubeColor      = {
-                north: { r: 127, g: 127, b: 127 },
-                east:  { r: 127, g: 127, b: 127 },
-                south: { r: 127, g: 127, b: 127 },
-                west:  { r: 127, g: 127, b: 127 },
-                front: { r: 127, g: 127, b: 127 }
-            },
-            r, g, b;
-
         // Dynamic light and brightness
         /**/
-        var time = priv.time;
-        var brightness     = pub.getBrightness(time);
-        var solarColor     = pub.getSolarColor(time);
-        var solarIntensity = pub.getSolarIntensity(time);
-        var worldColor     = pub.getMapColor(time);
-        var cubeColor = {
-            north: pub.getCubeColor(time, priv.cubeColors.north),
-            east:  pub.getCubeColor(time, priv.cubeColors.east),
-            south: pub.getCubeColor(time, priv.cubeColors.south),
-            west:  pub.getCubeColor(time, priv.cubeColors.west),
-            front: pub.getCubeColor(time, priv.cubeColors.front)
-        },
-
-        /**/
+        var r, g, b,
+            time = priv.time,
+            brightness     = pub.getBrightness(time),
+            solarColor     = pub.getSolarColor(time),
+            solarIntensity = pub.getSolarIntensity(time),
+            worldColor     = pub.getMapColor(time),
+            cubeColor = {
+                north: pub.getCubeColor(time, priv.cubeColors.north),
+                east:  pub.getCubeColor(time, priv.cubeColors.east),
+                south: pub.getCubeColor(time, priv.cubeColors.south),
+                west:  pub.getCubeColor(time, priv.cubeColors.west),
+                front: pub.getCubeColor(time, priv.cubeColors.front)
+            };
 
         // Render world color
         r = Math.round(((worldColor.r + solarColor.r) / (2*100)) * brightness);
@@ -300,34 +244,36 @@ function SolarAltitude(win, doc, $, domId, cubeColors) {
         priv.shapes.world.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
 
         // Render north color
-        r = Math.round(((cubeColor[0].r + (solarColor.r * solarIntensity[0])) / (2 * 100)) * brightness);
-        g = Math.round(((cubeColor[0].g + (solarColor.g * solarIntensity[0])) / (2 * 100)) * brightness);
-        b = Math.round(((cubeColor[0].b + (solarColor.b * solarIntensity[0])) / (2 * 100)) * brightness);
+        r = Math.round(((cubeColor.north.r + (solarColor.r * solarIntensity[0])) / (2 * 100)) * brightness);
+        g = Math.round(((cubeColor.north.g + (solarColor.g * solarIntensity[0])) / (2 * 100)) * brightness);
+        b = Math.round(((cubeColor.north.b + (solarColor.b * solarIntensity[0])) / (2 * 100)) * brightness);
         priv.shapes.north.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
 
         // Render east color
-        r = Math.round(((cubeColor[1].r + (solarColor.r * solarIntensity[1])) / (2 * 100)) * brightness);
-        g = Math.round(((cubeColor[1].g + (solarColor.g * solarIntensity[1])) / (2 * 100)) * brightness);
-        b = Math.round(((cubeColor[1].b + (solarColor.b * solarIntensity[1])) / (2 * 100)) * brightness);
+        r = Math.round(((cubeColor.east.r + (solarColor.r * solarIntensity[1])) / (2 * 100)) * brightness);
+        g = Math.round(((cubeColor.east.g + (solarColor.g * solarIntensity[1])) / (2 * 100)) * brightness);
+        b = Math.round(((cubeColor.east.b + (solarColor.b * solarIntensity[1])) / (2 * 100)) * brightness);
         priv.shapes.east.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
 
         // Render south color
-        r = Math.round(((cubeColor[2].r + (solarColor.r * solarIntensity[2])) / (2 * 100)) * brightness);
-        g = Math.round(((cubeColor[2].g + (solarColor.g * solarIntensity[2])) / (2 * 100)) * brightness);
-        b = Math.round(((cubeColor[2].b + (solarColor.b * solarIntensity[2])) / (2 * 100)) * brightness);
+        r = Math.round(((cubeColor.south.r + (solarColor.r * solarIntensity[2])) / (2 * 100)) * brightness);
+        g = Math.round(((cubeColor.south.g + (solarColor.g * solarIntensity[2])) / (2 * 100)) * brightness);
+        b = Math.round(((cubeColor.south.b + (solarColor.b * solarIntensity[2])) / (2 * 100)) * brightness);
         priv.shapes.south.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
 
         // Render west color
-        r = Math.round(((cubeColor[3].r + (solarColor.r * solarIntensity[3])) / (2 * 100)) * brightness);
-        g = Math.round(((cubeColor[3].g + (solarColor.g * solarIntensity[3])) / (2 * 100)) * brightness);
-        b = Math.round(((cubeColor[3].b + (solarColor.b * solarIntensity[3])) / (2 * 100)) * brightness);
+        r = Math.round(((cubeColor.west.r + (solarColor.r * solarIntensity[3])) / (2 * 100)) * brightness);
+        g = Math.round(((cubeColor.west.g + (solarColor.g * solarIntensity[3])) / (2 * 100)) * brightness);
+        b = Math.round(((cubeColor.west.b + (solarColor.b * solarIntensity[3])) / (2 * 100)) * brightness);
         priv.shapes.west.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
 
         // Render front color
-        r = Math.round(((cubeColor[4].r + solarColor.r * solarIntensity[4]) / (2 * 100)) * brightness);
-        g = Math.round(((cubeColor[4].g + solarColor.g * solarIntensity[4]) / (2 * 100)) * brightness);
-        b = Math.round(((cubeColor[4].b + solarColor.b * solarIntensity[4]) / (2 * 100)) * brightness);
+        r = Math.round(((cubeColor.front.r + solarColor.r * solarIntensity[4]) / (2 * 100)) * brightness);
+        g = Math.round(((cubeColor.front.g + solarColor.g * solarIntensity[4]) / (2 * 100)) * brightness);
+        b = Math.round(((cubeColor.front.b + solarColor.b * solarIntensity[4]) / (2 * 100)) * brightness);
         priv.shapes.front.css('background', 'rgb(' + r + ',' + g + ',' + b + ')');
+
+
     };
 
 
@@ -354,28 +300,32 @@ jQuery(document).ready(function() {
             west  : {r: 255, g: 0, b: 0},
             front : {r: 255, g: 0, b: 0},
             back  : {r: 255, g: 0, b: 0}
-        };
-        /*,
+        },
         green = {
-            list: [[
-                {r: 0, g: 255, b: 0},
-                {r: 0, g: 255, b: 0},
-                {r: 0, g: 255, b: 0},
-                {r: 0, g: 255, b: 0},
-                {r: 0, g: 255, b: 0}
-            ]],
-            amount: 1
+            north : {r: 0, g: 255, b: 0},
+            east  : {r: 0, g: 255, b: 0},
+            south : {r: 0, g: 255, b: 0},
+            west  : {r: 0, g: 255, b: 0},
+            front : {r: 0, g: 255, b: 0},
+            back  : {r: 0, g: 255, b: 0}
         },
         blue = {
-            list: [[
-                {r: 0, g: 0, b: 255},
-                {r: 0, g: 0, b: 255},
-                {r: 0, g: 0, b: 255},
-                {r: 0, g: 0, b: 255},
-                {r: 0, g: 0, b: 255}
-            ]],
-            amount: 1
+            north : {r: 0, g: 0, b: 255},
+            east  : {r: 0, g: 0, b: 255},
+            south : {r: 0, g: 0, b: 255},
+            west  : {r: 0, g: 0, b: 255},
+            front : {r: 0, g: 0, b: 255},
+            back  : {r: 0, g: 0, b: 255}
         },
+        grey = {
+            north : {r: 127, g: 127, b: 127},
+            east  : {r: 127, g: 127, b: 127},
+            south : {r: 127, g: 127, b: 127},
+            west  : {r: 127, g: 127, b: 127},
+            front : {r: 127, g: 127, b: 127},
+            back  : {r: 127, g: 127, b: 127}
+        };
+        /*,
         grey = {
             list: [[
                 {r: 255, g: 0, b: 0},
@@ -399,13 +349,15 @@ jQuery(document).ready(function() {
             amount: 2
         },*/
 
-        var solarAltitudeRed   = new SolarAltitude(window, document, jQuery, '#appRed', red);
-        /*solarAltitudeGreen = new SolarAltitude(window, document, jQuery, '#appGreen', green),
-        solarAltitudeBlue  = new SolarAltitude(window, document, jQuery, '#appBlue', blue),
-        solarAltitudeGrey  = new SolarAltitude(window, document, jQuery, '#appGrey', grey);*/
+        var solarAltitudeRed   = new SolarAltitude(window, document, jQuery, '#appRed', red),
+            solarAltitudeGreen = new SolarAltitude(window, document, jQuery, '#appGreen', green),
+            solarAltitudeBlue  = new SolarAltitude(window, document, jQuery, '#appBlue', blue),
+            solarAltitudeGrey  = new SolarAltitude(window, document, jQuery, '#appGrey', grey);
+            // solarAltitudeGrey  = new SolarAltitude(window, document, jQuery, '#appGrey', grey);
 
-    solarAltitudeRed.init();/*
+    solarAltitudeRed.init();
     solarAltitudeGreen.init();
     solarAltitudeBlue.init();
-    solarAltitudeGrey.init();*/
+    solarAltitudeGrey.init();
+    // solarAltitudeGrey.init();
 });
